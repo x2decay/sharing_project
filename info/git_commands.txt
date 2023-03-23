@@ -1,29 +1,29 @@
 # which branch you are now
 # ---
 # git branch
-#
+
 # fetch all branches
 # ---
 # git fetch
-#
+
 # current status
 # ---
 # git status
-#
+
 # to add, commit & push your work on current branch to remote repository
 # ---
 # git add --all
 # git commit -m "commit label"
 # git push
-#
+
 # to pull current branch from remote repository
 # ---
 # git pull
-#
+
 # change branch
 # ---
 # git checkout {branch_name}
-#
+
 # forgot all work from last commit
 # ---
 # git checkout .
@@ -37,3 +37,11 @@
 # set local branch to be tracked remotely
 # ---
 # git push --set-upstream origin {branch_name}
+
+# merge other branch into current
+# ---
+# git merge {other_branch_name}
+
+# branch diffrerence
+# ---
+# git diff {branch_a}..{branch_b}
