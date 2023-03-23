@@ -2,3 +2,6 @@
 venv
 .venv*
 venv/
+src/base/geckodriver
+.src/base/geckodriver*
+src/base/geckodriver/
