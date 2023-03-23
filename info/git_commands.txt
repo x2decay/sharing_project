@@ -27,3 +27,13 @@
 # forgot all work from last commit
 # ---
 # git checkout .
+
+
+# branch out from current branch
+# ---
+# git checkout -b {new_branch_name}
+
+
+# set local branch to be tracked remotely
+# ---
+# git push --set-upstream origin {branch_name}
