@@ -42,6 +42,6 @@
 # ---
 # git merge {other_branch_name}
 
-# branch diffrerence
+# branch difference
 # ---
 # git diff {branch_a}..{branch_b}

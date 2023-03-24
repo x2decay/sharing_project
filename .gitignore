@@ -1,7 +1,4 @@
 # created by virtualenv automatically
-venv
-.venv*
 venv/
-src/base/geckodriver
-.src/base/geckodriver*
 src/base/geckodriver/
+src/base/geckodriver.log
