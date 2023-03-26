@@ -13,8 +13,7 @@ def scrape(driver, teams_to_scrape):
     # If necessary, use Login info for debugging
     email = 'lkryvenko@cherrycreekschools.org'
     password = 'Dogunderfifthdollartree.'
-    # wait = WebDriverWait(driver, 2)
-    # actions = ActionChains(driver)
+    actions = ActionChains(driver)
     driver.get(url)
 
     # Login
@@ -66,17 +65,17 @@ def scrape(driver, teams_to_scrape):
     driver.implicitly_wait(2)
     body = driver.find_element(By.XPATH, '//div[..[p[contains(text(),"Overall")]]]')
     # Makes a list of  based on the names that were passed into the method
-    teams = []
+    teams = {}
     all_teams = body.find_elements(By.CSS_SELECTOR, 'div[role="row"]')
     while len(teams_to_scrape) > 0 and len(all_teams) > 0:
         name = all_teams[0].find_elements(By.XPATH, 'div//a/p[text()]')[0].text
         if name in teams_to_scrape:
-            teams.append(Team(all_teams[0]))
+            teams[name] = Team(all_teams[0])
             teams_to_scrape.remove(name)
         all_teams.pop(0)
 
     # Loop through the Teams that where passed into the method
-    for team in teams:
+    for team in teams.values():
         # Opens Team Page
         driver.get(team.href)
         # Ensures All Matches are Selected
@@ -126,17 +125,28 @@ def scrape(driver, teams_to_scrape):
                 #  EC.visibility_of_element_located((By.CSS_SELECTOR, '.SdgPerformanceBar__Block-sc-1yl1q71-2.fBQLcJ')))
                 # actions.move_to_element(desired_elem).perform()
                 # tt1_text = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, tooltip1))).text
+                for g in ser.find_elements(By.XPATH, './/div[div[div[p[contains(text(),"Game")]]]]'):
+                    circles = g.find_elements(By.XPATH, './/div/div/div/div[p]')
+                    for circle in circles:
+                        print('Hovering over', circle.find_element(By.TAG_NAME, 'p').text)
+                        actions.move_to_element(circle).perform()
+                        driver.implicitly_wait(5)
+                        character = driver.find_element(By.XPATH, '/html/body/div[4]/div/div')
+                        print(character.text)
+                        input('↳')
                 player_chars = range(1, len(stages) + 1)
                 opponent_chars = range(1, len(stages) + 1)
                 games = list(zip(player_chars, opponent_chars, stages, results))
                 for game in games:
                     print('\t'.join(map(str, game)))
                 team.players[name] = Player(name, games)
+            # uncomment "input('↳')" to pause between matches
             input('↳')
             # Close Match and Return to Team
             driver.close()
             driver.switch_to.window(windows[0])
 
-    input('quit?')
     print('quiting...', end='')
     driver.quit()
+
+    return teams

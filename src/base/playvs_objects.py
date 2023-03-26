@@ -27,10 +27,22 @@ class Team(object):
 class Player(object):
     def __init__(self, name, games):
         self.name = name
-        # [Character, Opponent, Stage, Result]
+        self.headers = ['Characters', 'Opponents', 'Stages', 'Results']
         self.games = games
+        self.zipped = {header: data for (header, data) in zip(self.headers, zip(*games))}
 
     def characters(self):
-        chars = list(zip(*self.games))[0]
-        for char in sorted(set(chars)):
-            print(f'{char}:\t{chars.count(char)/len(chars)}')
+        characters = self.zipped['Characters']
+        results = self.zipped['Results']
+        won = {}
+        total = {}
+        for i in range(len(results)):
+            if characters[i] not in won:
+                won[characters[i]] = 0
+                total[characters[i]] = 0
+            if results[i]:
+                won[characters[i]] += 1
+            total[characters[i]] += 1
+        percent = {char: round(won[char]/total[char], 3)*100 for char in characters}
+        for char in percent:
+            print(f'{char}:\t{percent[char]}%')
