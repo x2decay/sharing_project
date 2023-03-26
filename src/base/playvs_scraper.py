@@ -113,16 +113,6 @@ def scrape(driver, teams_to_scrape):
                 stages = [game_stages[x * 2 + 1].text for x in range(int(len(game_stages) / 2))]  # odd indices only
                 triangles = ser.find_elements(By.CSS_SELECTOR, 'div[data-cy="leftTriangle"]')[1:]
                 results = [(x.value_of_css_property('visibility') == 'visible') == home for x in triangles]
-                # TODO:
-                #  - Determine the characters in every game
-                #    - Hover over the letter icon
-                #    - Find the character name in html
-                #    - Commented code below could be useful (place into loop)
-                # https://stackoverflow.com/questions/74342917/extract-text-on-mouse-hover-in-python-selenium
-                # desired_elem = wait.until(
-                #  EC.visibility_of_element_located((By.CSS_SELECTOR, '.SdgPerformanceBar__Block-sc-1yl1q71-2.fBQLcJ')))
-                # actions.move_to_element(desired_elem).perform()
-                # tt1_text = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, tooltip1))).text
                 player_chars = []
                 opponent_chars = []
                 series_games = ser.find_elements(By.XPATH, './/div[div[div[p[contains(text(),"Game")]]]]')
