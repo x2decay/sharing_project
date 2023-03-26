@@ -4,19 +4,17 @@ from selenium.webdriver.common.keys import Keys
 # BeautifulSoup (and requests) might be necessary in the future
 # from bs4 import BeautifulSoup
 # import requests
-import os
 import time
 from src.base.playvs_objects import *
 
 
-def scrape(driver):
-    # Initialization
+def scrape(driver, teams_to_scrape):
     url = 'https://app.playvs.com/app/standings'
     # If necessary, use Login info for debugging
     email = 'lkryvenko@cherrycreekschools.org'
     password = 'Dogunderfifthdollartree.'
-    wait = WebDriverWait(driver, 2)
-    actions = ActionChains(driver)
+    # wait = WebDriverWait(driver, 2)
+    # actions = ActionChains(driver)
     driver.get(url)
 
     # Login
@@ -66,23 +64,24 @@ def scrape(driver):
 
     # Scrape the Teams
     driver.implicitly_wait(2)
-    body = driver.find_element(By.XPATH, '//div[..[p[text()[contains(.,"Overall")]]]]')
-    teams = {x.name: x for x in
-             [Team(x) for x in
-              body.find_elements(By.CSS_SELECTOR, 'div[role="row"]')[0:1]
-              ]}
+    body = driver.find_element(By.XPATH, '//div[..[p[contains(text(),"Overall")]]]')
+    # Makes a list of  based on the names that were passed into the method
+    teams = []
+    all_teams = body.find_elements(By.CSS_SELECTOR, 'div[role="row"]')
+    while len(teams_to_scrape) > 0 and len(all_teams) > 0:
+        name = all_teams[0].find_elements(By.XPATH, 'div//a/p[text()]')[0].text
+        if name in teams_to_scrape:
+            teams.append(Team(all_teams[0]))
+            teams_to_scrape.remove(name)
+        all_teams.pop(0)
 
-    # Loop through the Teams, also accepts input on which Team to Select
-    loop = True
-    i = 0
-    name = '' if True else input('Enter team name: ')
-    while loop:
-        team = teams[name if name != '' else list(teams.keys())[i]]
+    # Loop through the Teams that where passed into the method
+    for team in teams:
         # Opens Team Page
         driver.get(team.href)
         # Ensures All Matches are Selected
         driver.implicitly_wait(5)
-        print(driver.find_element(By.XPATH, f'//p[contains(text(),"{team.name}")]').text)
+        print('\t', team.name)
         more = driver.find_elements(By.XPATH, '//span/div[contains(text(),"Show More")]')
         if len(more) > 0:
             more[0].click()
@@ -90,72 +89,53 @@ def scrape(driver):
         driver.implicitly_wait(2)
         matches = driver.find_elements(By.XPATH, '//div[@data-cy="teamMatchHistoryOpponent"]//*[img]')
         for match in matches:
-            print(matches.index(match))
+            print('Match:', matches.index(match)+1)
             # Opens and Switches to Match
             match.click()
             windows = driver.window_handles
             driver.switch_to.window(windows[1])
             # Scrape Player Data
-            time.sleep(2)
             driver.implicitly_wait(5)
-            xpath = '/html/body/div[1]/div/div/div[2]/div[2]/div/div[1]'
-            banner = driver.find_element(By.XPATH, xpath)
-            a = banner.find_elements(By.TAG_NAME, 'a')
-            home = a[2].text == team.name
+            home_team = driver.find_element(By.XPATH, f'//div[div[span[a[contains(text(), "{team.name}")]]]]')
+            last_team = home_team
+            # since page first loads in the wrong orientation, this waits out until it is correct
+            while last_team == home_team:
+                last_team = home_team
+                home_team = driver.find_element(By.XPATH, f'//div[div[span[a[contains(text(), "{team.name}")]]]]')
+            print(home_team.get_attribute('style'))
+            alignment = home_team.get_attribute('style')
+            home = alignment == 'text-align: left;'
+            print('Home?', home)
             driver.implicitly_wait(5)
-            xpath = '/html/body/div[1]/div/div/div[2]/div[2]/div/div[3]/div/div/div/div[2]/div'
-            scoreboard = driver.find_element(By.XPATH, xpath)
-            time.sleep(.5)
-            p = scoreboard.find_elements(By.TAG_NAME, 'p')
-            print(p[i].text)
-            scores = [[int(x[0]), int(x[-1])] for x in filter(lambda x: ' - ' in x, [x.text for x in p])]
-            stages = []
-            for i in range(len(p) - 1):
-                if 'GAME' in p[i].text:
-                    stages.append(p[i + 1].text)
-            names = []
-            for i in range(len(p) - 1):
-                if home and 'SERIES' in p[i].text or not home and ' - ' in p[i].text:
-                    names.append(p[i + 1].text)
-            left_triangles = driver.find_elements(By.CSS_SELECTOR, 'div[data-cy="leftTriangle"]')
-            # TODO: remove "Series" triangles, keep only "Game" triangles
-            # for x in range(len(p)):
-            #     print(f'{x}:\t{p[x].text}')
-            home_score = driver.find_element(By.CSS_SELECTOR, 'p[data-cy="teamScore"]')
-            away_score = driver.find_element(By.CSS_SELECTOR, 'p[data-cy="opponentScore"]')
-            for series in range(int(home_score.text) + int(away_score.text)):
-                team.add_player(names[series])
+            xpath = '//div[div[div[div[div[div[p[contains(text(), "Series")]]]]]]]'
+            series = driver.find_elements(By.XPATH, xpath)
+            for ser in series:
+                name = ser.find_elements(By.XPATH, './/p[..[..[p]]]')[0 if home else 1].text
+                print(name)
+                game_stages = ser.find_elements(By.XPATH, './/p[..[p[contains(text(), "Game")]]]')
+                stages = [game_stages[x * 2 + 1].text for x in range(int(len(game_stages) / 2))]  # odd indices only
+                triangles = ser.find_elements(By.CSS_SELECTOR, 'div[data-cy="leftTriangle"]')[1:]
+                results = [(x.value_of_css_property('visibility') == 'visible') == home for x in triangles]
                 # TODO:
-                #  - Find who won each match
-                #    - Check the visibility of each arrow
-                #    - Determine whether should be visible of hidden for a win (done)
                 #  - Determine the characters in every game
-                #    - Hover to see character name (trigger hover, then peek)
+                #    - Hover over the letter icon
+                #    - Find the character name in html
                 #    - Commented code below could be useful (place into loop)
                 # https://stackoverflow.com/questions/74342917/extract-text-on-mouse-hover-in-python-selenium
                 # desired_elem = wait.until(
                 #  EC.visibility_of_element_located((By.CSS_SELECTOR, '.SdgPerformanceBar__Block-sc-1yl1q71-2.fBQLcJ')))
                 # actions.move_to_element(desired_elem).perform()
                 # tt1_text = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, tooltip1))).text
-                for game in range(sum(scores[series])):
-                    print(stages[0])
-                    triangle = left_triangles[game]
-                    jss = triangle.get_attribute("class").split()[1]
-                    visible = triangle.value_of_css_property(jss)
-                    game_won = visible == home
-                    print(jss, visible, home)
-                    print('Won!' if game_won else 'Lost ;(')
-                    team.add_game(names[series], ['Character', 'Opponent', stages.pop(0), game_won])
-                print()
-            input('->')
+                player_chars = range(1, len(stages) + 1)
+                opponent_chars = range(1, len(stages) + 1)
+                games = list(zip(player_chars, opponent_chars, stages, results))
+                for game in games:
+                    print('\t'.join(map(str, game)))
+                team.players[name] = Player(name, games)
+            input('↳')
             # Close Match and Return to Team
             driver.close()
             driver.switch_to.window(windows[0])
-        # Does cycle, also allows program to exit
-        name = '' if True else input('Enter team name\n> ')
-        i += 0 if name != '' else 1
-        if name == 'quit' or i >= len(teams):
-            loop = False
 
     input('quit?')
     print('quiting...', end='')

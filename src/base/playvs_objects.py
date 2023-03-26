@@ -20,21 +20,15 @@ class Team(object):
     def __get_href(raw_data):
         return raw_data.find_element(By.XPATH, 'div//a').get_attribute('href')
 
-    def add_player(self, name):
-        self.players[name] = Player(name)
-
     def add_game(self, name, game):
         self.players[name].add_game(game)
 
 
 class Player(object):
-    def __init__(self, name):
+    def __init__(self, name, games):
         self.name = name
-        # [Character, Opponent, Stage, win/lose]
-        self.games = []
-
-    def add_game(self, game):
-        self.games.append(game)
+        # [Character, Opponent, Stage, Result]
+        self.games = games
 
     def characters(self):
         chars = list(zip(*self.games))[0]
