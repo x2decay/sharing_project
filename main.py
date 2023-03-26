@@ -1,5 +1,6 @@
 from selenium import webdriver
 from src.base.playvs_scraper import scrape
+import pickle
 
 
 FIREFOX_PATH = r'drivers/geckodriver'
@@ -11,17 +12,22 @@ browsers = [FIREFOX, CHROME]
 
 # TODO: Fix error with Chrome on line 67 in playvs_scraper -> invalid XPATH
 browser = FIREFOX
-teams_to_scrape = ['Bad Decisions']
+teams_to_scrape = ['Saber Smash']
+
+rescrape = False
 
 if __name__ == '__main__':
-    if browser == FIREFOX:
-        driver = webdriver.Firefox(FIREFOX_PATH)
-    elif browser == CHROME:
-        driver = webdriver.Chrome(CHROME_PATH)
+    if rescrape:
+        if browser == FIREFOX:
+            driver = webdriver.Firefox(FIREFOX_PATH)
+        elif browser == CHROME:
+            driver = webdriver.Chrome(CHROME_PATH)
+        else:
+            driver = webdriver.Firefox(FIREFOX_PATH)
+        teams = scrape(driver, teams_to_scrape.copy())
+        pickle.dump(teams, open('archived_teams', 'wb'))
     else:
-        driver = webdriver.Firefox(FIREFOX_PATH)
-
-    teams = scrape(driver, teams_to_scrape.copy())
+        teams = pickle.load(open('archived_teams', 'rb'))
 
     print(teams_to_scrape)
 
@@ -29,4 +35,5 @@ if __name__ == '__main__':
         team = teams[team_name]
         for player in team.players.values():
             print(player.name)
-            player.characters()
+            player.stats()
+            print()

@@ -25,24 +25,41 @@ class Team(object):
 
 
 class Player(object):
-    def __init__(self, name, games):
+    headers = ['Characters', 'Opponents', 'Stages', 'Results']
+
+    def __init__(self, name):
         self.name = name
-        self.headers = ['Characters', 'Opponents', 'Stages', 'Results']
-        self.games = games
-        self.zipped = {header: data for (header, data) in zip(self.headers, zip(*games))}
+        self.games = []
+
+    def zipped(self):
+        return {header: data for (header, data) in zip(Player.headers, zip(*self.games))}
+
+    def stats(self):
+        for header in Player.headers[:-1]:
+            print(f'  {header[:-1]} Win Percents')
+            self.win_percent(header)
 
     def characters(self):
-        characters = self.zipped['Characters']
-        results = self.zipped['Results']
+        self.win_percent('Characters')
+
+    def opponents(self):
+        self.win_percent('Opponents')
+
+    def stages(self):
+        self.win_percent('Stages')
+
+    def win_percent(self, mode):
+        var = self.zipped()[mode]
+        results = self.zipped()['Results']
         won = {}
         total = {}
         for i in range(len(results)):
-            if characters[i] not in won:
-                won[characters[i]] = 0
-                total[characters[i]] = 0
+            if var[i] not in won:
+                won[var[i]] = 0
+                total[var[i]] = 0
             if results[i]:
-                won[characters[i]] += 1
-            total[characters[i]] += 1
-        percent = {char: round(won[char]/total[char], 3)*100 for char in characters}
+                won[var[i]] += 1
+            total[var[i]] += 1
+        percent = {char: round(won[char]/total[char]*100, 1) for char in var}
         for char in percent:
-            print(f'{char}:\t{percent[char]}%')
+            print(f'    {char}:\t{percent[char]}% ({total[char]} game{"s" if total[char] > 1 else ""})')

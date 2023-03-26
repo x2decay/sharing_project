@@ -1,9 +1,10 @@
 from selenium.webdriver import ActionChains
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 # BeautifulSoup (and requests) might be necessary in the future
 # from bs4 import BeautifulSoup
 # import requests
+import pyautogui as pag
+from copy import deepcopy as clone
 import time
 from src.base.playvs_objects import *
 
@@ -80,15 +81,14 @@ def scrape(driver, teams_to_scrape):
         driver.get(team.href)
         # Ensures All Matches are Selected
         driver.implicitly_wait(5)
-        print('\t', team.name)
         more = driver.find_elements(By.XPATH, '//span/div[contains(text(),"Show More")]')
         if len(more) > 0:
             more[0].click()
         # Goes through Every Match
+        time.sleep(1)
         driver.implicitly_wait(2)
         matches = driver.find_elements(By.XPATH, '//div[@data-cy="teamMatchHistoryOpponent"]//*[img]')
         for match in matches:
-            print('Match:', matches.index(match)+1)
             # Opens and Switches to Match
             match.click()
             windows = driver.window_handles
@@ -101,16 +101,13 @@ def scrape(driver, teams_to_scrape):
             while last_team == home_team:
                 last_team = home_team
                 home_team = driver.find_element(By.XPATH, f'//div[div[span[a[contains(text(), "{team.name}")]]]]')
-            print(home_team.get_attribute('style'))
             alignment = home_team.get_attribute('style')
             home = alignment == 'text-align: left;'
-            print('Home?', home)
             driver.implicitly_wait(5)
             xpath = '//div[div[div[div[div[div[p[contains(text(), "Series")]]]]]]]'
             series = driver.find_elements(By.XPATH, xpath)
             for ser in series:
                 name = ser.find_elements(By.XPATH, './/p[..[..[p]]]')[0 if home else 1].text
-                print(name)
                 game_stages = ser.find_elements(By.XPATH, './/p[..[p[contains(text(), "Game")]]]')
                 stages = [game_stages[x * 2 + 1].text for x in range(int(len(game_stages) / 2))]  # odd indices only
                 triangles = ser.find_elements(By.CSS_SELECTOR, 'div[data-cy="leftTriangle"]')[1:]
@@ -125,28 +122,45 @@ def scrape(driver, teams_to_scrape):
                 #  EC.visibility_of_element_located((By.CSS_SELECTOR, '.SdgPerformanceBar__Block-sc-1yl1q71-2.fBQLcJ')))
                 # actions.move_to_element(desired_elem).perform()
                 # tt1_text = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, tooltip1))).text
+                player_chars = []
+                opponent_chars = []
                 for g in ser.find_elements(By.XPATH, './/div[div[div[p[contains(text(),"Game")]]]]'):
                     circles = g.find_elements(By.XPATH, './/div/div/div/div[p]')
+                    i = 0
                     for circle in circles:
-                        print('Hovering over', circle.find_element(By.TAG_NAME, 'p').text)
-                        actions.move_to_element(circle).perform()
+                        mouse_pos = pag.position()
+                        last_pos = clone(mouse_pos) + (1, 1)
+                        while last_pos != mouse_pos:
+                            last_pos = clone(mouse_pos)
+                            driver.execute_script(f'window.scrollTo(0, {circle.location["y"]})')
+                            playvs = driver.find_element(By.XPATH, '//p[contains(text(), "PlayVS")]')
+                            actions.move_to_element(playvs).perform()
+                            time.sleep(.05)
+                            actions.move_to_element(circle).perform()
+                            time.sleep(.2)
+                            mouse_pos = pag.position()
                         driver.implicitly_wait(5)
-                        character = driver.find_element(By.XPATH, '/html/body/div[4]/div/div')
-                        print(character.text)
-                        input('↳')
-                player_chars = range(1, len(stages) + 1)
-                opponent_chars = range(1, len(stages) + 1)
+                        xpath = f'/html/body/div[{"6" if team.name == "Creek Smash 1" else "4"}]/div/div'
+                        character = driver.find_element(By.XPATH, xpath).text
+                        print(f'{home} == {i % 2 == 0} -> {home == (i % 2 == 0)}')
+                        if home == (i % 2 == 0):
+                            player_chars.append(character)
+                        else:
+                            opponent_chars.append(character)
+                        i += 1
+                        # input('↳')
                 games = list(zip(player_chars, opponent_chars, stages, results))
+                print('Games:')
                 for game in games:
                     print('\t'.join(map(str, game)))
-                team.players[name] = Player(name, games)
+                if name not in team.players:
+                    team.players[name] = Player(name)
+                team.players[name].games += games
             # uncomment "input('↳')" to pause between matches
-            input('↳')
+            # input('↳')
             # Close Match and Return to Team
             driver.close()
             driver.switch_to.window(windows[0])
-
-    print('quiting...', end='')
     driver.quit()
 
     return teams
