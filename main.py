@@ -29,8 +29,6 @@ if __name__ == '__main__':
     else:
         teams = pickle.load(open('archived_teams', 'rb'))
 
-    print(teams_to_scrape)
-
     for team_name in teams_to_scrape:
         team = teams[team_name]
         for player in team.players.values():

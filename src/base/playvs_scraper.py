@@ -106,7 +106,8 @@ def scrape(driver, teams_to_scrape):
             driver.implicitly_wait(5)
             xpath = '//div[div[div[div[div[div[p[contains(text(), "Series")]]]]]]]'
             series = driver.find_elements(By.XPATH, xpath)
-            for ser in series:
+            for n in range(len(series)):
+                ser = series[n]
                 name = ser.find_elements(By.XPATH, './/p[..[..[p]]]')[0 if home else 1].text
                 game_stages = ser.find_elements(By.XPATH, './/p[..[p[contains(text(), "Game")]]]')
                 stages = [game_stages[x * 2 + 1].text for x in range(int(len(game_stages) / 2))]  # odd indices only
@@ -124,8 +125,9 @@ def scrape(driver, teams_to_scrape):
                 # tt1_text = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, tooltip1))).text
                 player_chars = []
                 opponent_chars = []
-                for g in ser.find_elements(By.XPATH, './/div[div[div[p[contains(text(),"Game")]]]]'):
-                    circles = g.find_elements(By.XPATH, './/div/div/div/div[p]')
+                series_games = ser.find_elements(By.XPATH, './/div[div[div[p[contains(text(),"Game")]]]]')
+                for series_game in series_games:
+                    circles = series_game.find_elements(By.XPATH, './/div/div/div/div[p]')
                     i = 0
                     for circle in circles:
                         mouse_pos = pag.position()
@@ -142,20 +144,18 @@ def scrape(driver, teams_to_scrape):
                         driver.implicitly_wait(5)
                         xpath = f'/html/body/div[{"6" if team.name == "Creek Smash 1" else "4"}]/div/div'
                         character = driver.find_element(By.XPATH, xpath).text
-                        print(f'{home} == {i % 2 == 0} -> {home == (i % 2 == 0)}')
                         if home == (i % 2 == 0):
                             player_chars.append(character)
                         else:
                             opponent_chars.append(character)
                         i += 1
+                        # Uncomment to pause in between series
                         # input('↳')
-                games = list(zip(player_chars, opponent_chars, stages, results))
-                print('Games:')
-                for game in games:
-                    print('\t'.join(map(str, game)))
+                ran = range(1, len(series_games)+1)
+                games = list(zip(player_chars, opponent_chars, stages, results, [n]+[0 for _ in ran[:-1]], list(ran)))
                 if name not in team.players:
                     team.players[name] = Player(name)
-                team.players[name].games += games
+                team.players[name].games_list += games
             # uncomment "input('↳')" to pause between matches
             # input('↳')
             # Close Match and Return to Team

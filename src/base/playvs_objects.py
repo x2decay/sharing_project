@@ -25,28 +25,28 @@ class Team(object):
 
 
 class Player(object):
-    headers = ['Characters', 'Opponents', 'Stages', 'Results']
+    headers = ['Characters', 'Opponents', 'Stages', 'Results', 'Series_Order', 'Game_Order']
 
     def __init__(self, name):
         self.name = name
-        self.games = []
+        self.games_list = []
+
+    def games(self):
+        return [{self.headers[i][:-1]: g[i] for i in range(len(g))} for g in self.games_list]
 
     def zipped(self):
-        return {header: data for (header, data) in zip(Player.headers, zip(*self.games))}
+        return {header: data for (header, data) in zip(Player.headers, zip(*self.games_list))}
 
     def stats(self):
-        for header in Player.headers[:-1]:
-            print(f'  {header[:-1]} Win Percents')
+        print(list(filter(lambda x: x > 0, self.zipped()['Series_Order'])))
+        for header in Player.headers[:3]:
+            print(f'\t{header[:-1]} Win Percents')
             self.win_percent(header)
 
-    def characters(self):
-        self.win_percent('Characters')
-
-    def opponents(self):
-        self.win_percent('Opponents')
-
-    def stages(self):
-        self.win_percent('Stages')
+    def print_games(self):
+        for game in self.games():
+            print(f'{"Won" if game["Result"] else "Lost"} as ', end='')
+            print(f'{game["Character"]} against {game["Opponent"]} on {game["Stage"]}')
 
     def win_percent(self, mode):
         var = self.zipped()[mode]
@@ -62,4 +62,4 @@ class Player(object):
             total[var[i]] += 1
         percent = {char: round(won[char]/total[char]*100, 1) for char in var}
         for char in percent:
-            print(f'    {char}:\t{percent[char]}% ({total[char]} game{"s" if total[char] > 1 else ""})')
+            print(f'\t\t{char}:\t{percent[char]}% ({total[char]} game{"s" if total[char] > 1 else ""})')
