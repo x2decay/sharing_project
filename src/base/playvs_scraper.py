@@ -1,10 +1,5 @@
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.keys import Keys
-# BeautifulSoup (and requests) might be necessary in the future
-# from bs4 import BeautifulSoup
-# import requests
-import pyautogui as pag
-from copy import deepcopy as clone
 import time
 from src.base.playvs_objects import *
 
@@ -63,7 +58,7 @@ def scrape(driver, teams_to_scrape):
         spring23.click()
 
     # Scrape the Teams
-    driver.implicitly_wait(2)
+    driver.implicitly_wait(10)
     body = driver.find_element(By.XPATH, '//div[..[p[contains(text(),"Overall")]]]')
     # Makes a list of  based on the names that were passed into the method
     teams = {}
@@ -94,12 +89,14 @@ def scrape(driver, teams_to_scrape):
             windows = driver.window_handles
             driver.switch_to.window(windows[1])
             # Scrape Player Data
-            driver.implicitly_wait(5)
+            driver.implicitly_wait(10)
             home_team = driver.find_element(By.XPATH, f'//div[div[span[a[contains(text(), "{team.name}")]]]]')
             last_team = home_team
             # since page first loads in the wrong orientation, this waits out until it is correct
-            while last_team == home_team:
+            start = time.time()
+            while last_team == home_team and time.time() - start < 2:
                 last_team = home_team
+                driver.implicitly_wait(5)
                 home_team = driver.find_element(By.XPATH, f'//div[div[span[a[contains(text(), "{team.name}")]]]]')
             alignment = home_team.get_attribute('style')
             home = alignment == 'text-align: left;'
@@ -120,29 +117,26 @@ def scrape(driver, teams_to_scrape):
                     circles = series_game.find_elements(By.XPATH, './/div/div/div/div[p]')
                     i = 0
                     for circle in circles:
-                        mouse_pos = pag.position()
-                        last_pos = clone(mouse_pos) + (1, 1)
-                        while last_pos != mouse_pos:
-                            last_pos = clone(mouse_pos)
+                        character = ''
+                        while character == '':
+                            driver.implicitly_wait(5)
                             driver.execute_script(f'window.scrollTo(0, {circle.location["y"]})')
-                            playvs = driver.find_element(By.XPATH, '//p[contains(text(), "PlayVS")]')
-                            actions.move_to_element(playvs).perform()
-                            time.sleep(.05)
+                            driver.implicitly_wait(5)
                             actions.move_to_element(circle).perform()
-                            time.sleep(.2)
-                            mouse_pos = pag.position()
-                        driver.implicitly_wait(5)
-                        xpath = f'/html/body/div[{"6" if team.name == "Creek Smash 1" else "4"}]/div/div'
-                        character = driver.find_element(By.XPATH, xpath).text
+                            time.sleep(.02)
+                            driver.implicitly_wait(5)
+                            xpath = f'/html/body/div[{"6" if team.name == "Creek Smash 1" else "4"}]/div/div'
+                            if len(driver.find_elements(By.XPATH, xpath)) > 0:
+                                character = driver.find_element(By.XPATH, xpath).text
                         if home == (i % 2 == 0):
                             player_chars.append(character)
                         else:
                             opponent_chars.append(character)
                         i += 1
-                        # Uncomment to pause in between series
+                        # Uncomment to pause every half game
                         # input('↳')
-                ran = range(1, len(series_games)+1)
-                games = list(zip(player_chars, opponent_chars, stages, results, [n]+[0 for _ in ran[:-1]], list(ran)))
+                ran = list(range(1, len(series_games)+1))
+                games = list(zip(player_chars, opponent_chars, stages, results, [n+1]+[0 for _ in ran[:-1]], ran))
                 if name not in team.players:
                     team.players[name] = Player(name)
                 team.players[name].games_list += games

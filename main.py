@@ -8,12 +8,12 @@ CHROME_PATH = r'drivers/chromedriver'
 
 FIREFOX = 'Firefox'
 CHROME = 'Chrome'
-browsers = [FIREFOX, CHROME]
 
 # TODO: Fix error with Chrome on line 67 in playvs_scraper -> invalid XPATH
 browser = FIREFOX
 teams_to_scrape = ['Saber Smash']
 
+# Set to True to run the scraper, False to just use the cached data.
 rescrape = False
 
 if __name__ == '__main__':
@@ -32,6 +32,5 @@ if __name__ == '__main__':
     for team_name in teams_to_scrape:
         team = teams[team_name]
         for player in team.players.values():
-            print(player.name)
             player.stats()
             print()
