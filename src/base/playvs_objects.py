@@ -25,7 +25,7 @@ class Team(object):
 
 
 class Player(object):
-    headers = ['Characters', 'Opponents', 'Stages', 'Results', 'Series_Order', 'Game_Order']
+    headers = ['Characters', 'Opponents', 'Stages', 'Results', 'Series_Orders', 'Game_Orders']
 
     def __init__(self, name):
         self.name = name
@@ -38,7 +38,18 @@ class Player(object):
         return {header: data for (header, data) in zip(Player.headers, zip(*self.games_list))}
 
     def stats(self):
-        print(list(filter(lambda x: x > 0, self.zipped()['Series_Order'])))
+        results = self.zipped()['Results']
+        print(self.name)
+        print(f'Win Percent: {round(results.count(True) / len(results) * 100, 1)}%')
+        played = list(filter(lambda x: x > 0, self.zipped()['Series_Orders']))
+        for n in range(3):
+            print(end=f'{["First", "Second", "Third"][n]}: {played.count(n+1)} ')
+        last_won = None
+        for game in reversed(self.games()):
+            if game['Result']:
+                last_won = game
+                break
+        print(f'\nLast win as {last_won["Character"]} against {last_won["Opponent"]} on {last_won["Stage"]}')
         for header in Player.headers[:3]:
             print(f'\t{header[:-1]} Win Percents')
             self.win_percent(header)
