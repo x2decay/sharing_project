@@ -1,5 +1,5 @@
 # created by virtualenv automatically
 venv/
+drivers/
 __pycache__/
-src/base/geckodriver/
 geckodriver.log
