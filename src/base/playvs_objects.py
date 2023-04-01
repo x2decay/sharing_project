@@ -37,24 +37,26 @@ class Player(object):
     def zipped(self):
         return {header: data for (header, data) in zip(Player.headers, zip(*self.games_list))}
 
-    def stats(self):
+    def print_stats(self):
         results = self.zipped()['Results']
         print(self.name)
         print(f'Win Percent: {round(results.count(True) / len(results) * 100, 1)}%')
         played = list(filter(lambda x: x > 0, self.zipped()['Series_Orders']))
         for n in range(3):
             print(end=f'{["First", "Second", "Third"][n]}: {played.count(n+1)} ')
-        last_won = None
-        for game in reversed(self.games()):
-            if game['Result']:
-                last_won = game
-                break
-        print(f'\nLast win as {last_won["Character"]} against {last_won["Opponent"]} on {last_won["Stage"]}')
+        results = list(reversed(self.zipped()['Results']))
+        if results.count(True) > 0:
+            last_won = list(reversed(self.games()))[list(reversed(results)).index(True)]
+            print(end=f'\nLast win was as {last_won["Character"]} ')
+            print(f'against {last_won["Opponent"]} on {last_won["Stage"]}')
+        else:
+            print('\nNo won games on record')
         for header in Player.headers[:3]:
             print(f'\t{header[:-1]} Win Percents')
             self.win_percent(header)
 
     def print_games(self):
+        print(self.name)
         for game in self.games():
             print(f'{"Won" if game["Result"] else "Lost"} as ', end='')
             print(f'{game["Character"]} against {game["Opponent"]} on {game["Stage"]}')
