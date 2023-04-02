@@ -1,24 +1,38 @@
 from selenium import webdriver
-from src.base.playvs_scraper import scrape
+from selenium.webdriver import ActionChains
+from src.base.playvs_scraper import *
+import src.base.jsons
 import pickle
-
 
 teams_to_scrape = ['ThunderRidge Green Team']
 
 # Set to True to run the scraper, False to just use the cached data.
-rescrape_players = False
+scrape_players = False
 # Leave on False unless you want to scrape a different team
-rescrape_teams = False
+scrape_teams = False
+
 
 if __name__ == '__main__':
     teams = pickle.load(open('archived_teams', 'rb'))
-    if rescrape_players:
+    with open('example.json', 'r') as file:
+        teams = jsons.to_classes(file)
+    print(j)
+    if scrape_players or scrape_teams:
         driver = webdriver.Firefox(r'drivers/geckodriver')
-        teams = scrape(driver, teams_to_scrape.copy(), teams, rescrape_teams)
-        pickle.dump(teams, open('archived_teams', 'wb'))
-
-    for team_name in teams_to_scrape:
-        team = teams[team_name]
+        start_scraper(driver)
+        if scrape_teams:
+            teams = team_scraper(driver, teams_to_scrape)
+        else:
+            pass
+        if scrape_players:
+            actions = webdriver.ActionChains(driver)
+            teams = player_scraper(driver, teams, actions)
+            pickle.dump(teams, open('archived_teams', 'wb'))
+        else:
+            pass
+        driver.quit()
+    for team in teams.values():
+        print(team.name)
         for player in team.players.values():
             player.print_stats()
             print()

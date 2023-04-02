@@ -1,15 +1,13 @@
-from selenium.webdriver import ActionChains
 from selenium.webdriver.common.keys import Keys
-import time
 from src.base.playvs_objects import *
+import time
 
 
-def scrape(driver, teams_to_scrape, teams, rescrape_teams):
+def start_scraper(driver):
     url = 'https://app.playvs.com/app/standings'
     # If necessary, use Login info for debugging
     email = 'lkryvenko@cherrycreekschools.org'
     password = 'Dogunderfifthdollartree.'
-    actions = ActionChains(driver)
     driver.get(url)
 
     # Login
@@ -29,48 +27,51 @@ def scrape(driver, teams_to_scrape, teams, rescrape_teams):
     dark.click()
     dark.send_keys(Keys.ESCAPE)
 
-    if rescrape_teams:
-        # Switch to Smash
-        driver.implicitly_wait(5)
-        if len(driver.find_elements(By.CSS_SELECTOR, 'button[data-cy="Colorado CHSAA League of Legends"]')) > 0:
-            league = driver.find_element(By.CSS_SELECTOR, 'button[data-cy="Colorado CHSAA League of Legends"]')
-            time.sleep(.5)
-            league.click()
-            driver.implicitly_wait(2)
-            smash = driver.find_element(By.CSS_SELECTOR, 'li[data-cy="Colorado CHSAA Super Smash Bros.™ Ultimate"]')
-            smash.click()
 
-        # Switch to Spring 2023
-        driver.implicitly_wait(5)
-        if len(driver.find_elements(By.CSS_SELECTOR, 'button[data-cy="Fall 2022"]')) > 0:
-            season = driver.find_element(By.CSS_SELECTOR, 'button[data-cy="Fall 2022"]')
-            season.click()
-            driver.implicitly_wait(2)
-            spring23 = driver.find_element(By.CSS_SELECTOR, 'li[data-cy="Spring 2023"]')
-            spring23.click()
+def team_scraper(driver, teams_to_scrape):
+    # Switch to Smash
+    driver.implicitly_wait(5)
+    if len(driver.find_elements(By.CSS_SELECTOR, 'button[data-cy="Colorado CHSAA League of Legends"]')) > 0:
+        league = driver.find_element(By.CSS_SELECTOR, 'button[data-cy="Colorado CHSAA League of Legends"]')
+        time.sleep(.5)
+        league.click()
+        driver.implicitly_wait(2)
+        smash = driver.find_element(By.CSS_SELECTOR, 'li[data-cy="Colorado CHSAA Super Smash Bros.™ Ultimate"]')
+        smash.click()
 
-        # Switch to Regular Season
-        driver.implicitly_wait(5)
-        if len(driver.find_elements(By.CSS_SELECTOR, 'button[data-cy="Playoffs')) > 0:
-            season = driver.find_element(By.CSS_SELECTOR, 'button[data-cy="Playoffs"]')
-            season.click()
-            driver.implicitly_wait(2)
-            spring23 = driver.find_element(By.CSS_SELECTOR, 'li[data-cy="Regular Season"]')
-            spring23.click()
+    # Switch to Spring 2023
+    driver.implicitly_wait(5)
+    if len(driver.find_elements(By.CSS_SELECTOR, 'button[data-cy="Fall 2022"]')) > 0:
+        season = driver.find_element(By.CSS_SELECTOR, 'button[data-cy="Fall 2022"]')
+        season.click()
+        driver.implicitly_wait(2)
+        spring23 = driver.find_element(By.CSS_SELECTOR, 'li[data-cy="Spring 2023"]')
+        spring23.click()
 
-        # Scrape the Teams
-        driver.implicitly_wait(10)
-        body = driver.find_element(By.XPATH, '//div[..[p[contains(text(),"Overall")]]]')
-        # Makes a list of  based on the names that were passed into the method
-        teams = {}
-        all_teams = body.find_elements(By.CSS_SELECTOR, 'div[role="row"]')
-        while len(teams_to_scrape) > 0 and len(all_teams) > 0:
-            name = all_teams[0].find_elements(By.XPATH, 'div//a/p[text()]')[0].text
-            if name in teams_to_scrape:
-                teams[name] = Team(all_teams[0])
-                teams_to_scrape.remove(name)
-            all_teams.pop(0)
+    # Switch to Regular Season
+    driver.implicitly_wait(5)
+    if len(driver.find_elements(By.CSS_SELECTOR, 'button[data-cy="Playoffs')) > 0:
+        season = driver.find_element(By.CSS_SELECTOR, 'button[data-cy="Playoffs"]')
+        season.click()
+        driver.implicitly_wait(2)
+        spring23 = driver.find_element(By.CSS_SELECTOR, 'li[data-cy="Regular Season"]')
+        spring23.click()
 
+    # Scrape the Teams
+    driver.implicitly_wait(10)
+    body = driver.find_element(By.XPATH, '//div[..[p[contains(text(),"Overall")]]]')
+    # Makes a list of  based on the names that were passed into the method
+    teams = {}
+    all_teams = body.find_elements(By.CSS_SELECTOR, 'div[role="row"]')
+    while len(teams_to_scrape) > 0 and len(all_teams) > 0:
+        name = all_teams[0].find_elements(By.XPATH, 'div//a/p[text()]')[0].text
+        if name in teams_to_scrape:
+            teams[name] = Team(all_teams[0])
+            teams_to_scrape.remove(name)
+        all_teams.pop(0)
+
+
+def player_scraper(driver, teams, actions):
     # Loop through the Teams that where passed into the method
     for team in teams.values():
         # Reset players
@@ -95,17 +96,17 @@ def scrape(driver, teams_to_scrape, teams, rescrape_teams):
             driver.implicitly_wait(10)
             completed = driver.find_elements(By.XPATH, '//p[contains(text(), "Completed")]')
             if completed:
-                scraped_team = driver.find_element(By.XPATH, f'//div[div[span[a[text()="{team.name}"]]]]')
+                scraped_team = driver.find_element(By.XPATH, f'//a[contains(text(), "{team.name}")]')
                 # since page first loads in the wrong orientation, this waits out until it is correct
                 start = time.time()
                 while time.time() - start < 1:
                     last_team = scraped_team
                     driver.implicitly_wait(5)
-                    scraped_team = driver.find_element(By.XPATH, f'//div[div[span[a[text()="{team.name}"]]]]')
+                    scraped_team = driver.find_element(By.XPATH, f'//a[contains(text(), "{team.name}")]')
                     if last_team != scraped_team:
                         start = time.time()
-                alignment = scraped_team.get_attribute('style')
-                home = alignment == 'text-align: left;'
+                alignment = scraped_team.value_of_css_property('text-align')
+                home = alignment == 'left'
                 driver.implicitly_wait(5)
                 xpath = '//div[div[div[div[div[div[p[contains(text(), "Series")]]]]]]]'
                 series = driver.find_elements(By.XPATH, xpath)
@@ -141,15 +142,16 @@ def scrape(driver, teams_to_scrape, teams, rescrape_teams):
                             i += 1
                             # Uncomment to pause every half game
                             # input('↳')
-                    ran = list(range(1, len(series_games)+1))
-                    games = list(zip(player_chars, opponent_chars, stages, results, [n+1]+[0 for _ in ran[:-1]], ran))
-                    team.players[name] = Player(name)
+                    ran = list(range(1, len(series_games) + 1))
+                    games = list(
+                        zip(player_chars, opponent_chars, stages, results, [n + 1] + [0 for _ in ran[:-1]], ran))
+                    if name not in team.players:
+                        team.players[name] = Player(name)
                     team.players[name].games_list += games
             # uncomment "input('↳')" to pause between matches
             # input('↳')
             # Close Match and Return to Team
             driver.close()
             driver.switch_to.window(windows[0])
-    driver.quit()
 
     return teams

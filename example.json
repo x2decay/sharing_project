@@ -1,0 +1,21 @@
+{
+  "Creek Smash 1": {
+    "name": "Creek Smash 1",
+    "school": "Cherry Creek High School",
+    "href": "https://app.playvs.com/app/team/a68b476b-e706-42b4-8da0-e82c5384c15c",
+    "players": {
+      "Lev": {
+        "name": "Lev",
+        "games": [ {
+          "character": "Joker",
+          "opponent": "Samus",
+          "stage": "Pokémon Stadium 2",
+          "result": false,
+          "series_order": 1,
+          "game_played": 1
+          }
+        ]
+      }
+    }
+  }
+}
