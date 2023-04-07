@@ -1,6 +1,11 @@
 from selenium.webdriver.common.keys import Keys
-from src.base.playvs_objects import *
+from selenium.webdriver.common.by import By
+from src.base.playvs_objects import Team
+from unidecode import unidecode
+from win10toast import ToastNotifier
 import time
+
+toast = ToastNotifier()
 
 
 def start_scraper(driver):
@@ -69,11 +74,12 @@ def team_scraper(driver, teams_to_scrape):
             teams[name] = Team(all_teams[0])
             teams_to_scrape.remove(name)
         all_teams.pop(0)
+    return teams
 
 
-def player_scraper(driver, teams, actions):
+def player_scraper(driver, actions, teams):
     # Loop through the Teams that where passed into the method
-    for team in teams.values():
+    for (team_name, team) in teams.items():
         # Reset players
         team.players = {}
         # Opens Team Page
@@ -96,60 +102,59 @@ def player_scraper(driver, teams, actions):
             driver.implicitly_wait(10)
             completed = driver.find_elements(By.XPATH, '//p[contains(text(), "Completed")]')
             if completed:
-                scraped_team = driver.find_element(By.XPATH, f'//a[contains(text(), "{team.name}")]')
+                scraped_team = driver.find_element(By.XPATH, f'//a[contains(text(), "{team_name}")]')
                 # since page first loads in the wrong orientation, this waits out until it is correct
                 start = time.time()
                 while time.time() - start < 1:
                     last_team = scraped_team
                     driver.implicitly_wait(5)
-                    scraped_team = driver.find_element(By.XPATH, f'//a[contains(text(), "{team.name}")]')
+                    scraped_team = driver.find_element(By.XPATH, f'//a[contains(text(), "{team_name}")]')
                     if last_team != scraped_team:
                         start = time.time()
-                alignment = scraped_team.value_of_css_property('text-align')
-                home = alignment == 'left'
-                driver.implicitly_wait(5)
-                xpath = '//div[div[div[div[div[div[p[contains(text(), "Series")]]]]]]]'
-                series = driver.find_elements(By.XPATH, xpath)
-                for n in range(len(series)):
-                    ser = series[n]
-                    name = ser.find_elements(By.XPATH, './/p[..[..[p]]]')[0 if home else 1].text
-                    game_stages = ser.find_elements(By.XPATH, './/p[..[p[contains(text(), "Game")]]]')
-                    stages = [game_stages[x * 2 + 1].text for x in range(int(len(game_stages) / 2))]  # odd indices only
-                    triangles = ser.find_elements(By.CSS_SELECTOR, 'div[data-cy="leftTriangle"]')[1:]
-                    results = [(x.value_of_css_property('visibility') == 'visible') == home for x in triangles]
-                    player_chars = []
-                    opponent_chars = []
-                    series_games = ser.find_elements(By.XPATH, './/div[div[div[p[contains(text(),"Game")]]]]')
-                    for series_game in series_games:
-                        circles = series_game.find_elements(By.XPATH, './/div/div/div/div[p]')
-                        i = 0
-                        for circle in circles:
-                            character = ''
-                            while character == '':
-                                driver.implicitly_wait(5)
-                                driver.execute_script(f'window.scrollTo(0, {circle.location["y"]})')
-                                driver.implicitly_wait(5)
-                                actions.move_to_element(circle).perform()
-                                time.sleep(.02)
-                                driver.implicitly_wait(5)
-                                xpath = f'/html/body/div[{"6" if team.name == "Creek Smash 1" else "4"}]/div/div'
-                                if len(driver.find_elements(By.XPATH, xpath)) > 0:
-                                    character = driver.find_element(By.XPATH, xpath).text
-                            if home == (i % 2 == 0):
-                                player_chars.append(character)
-                            else:
-                                opponent_chars.append(character)
-                            i += 1
-                            # Uncomment to pause every half game
-                            # input('↳')
-                    ran = list(range(1, len(series_games) + 1))
-                    games = list(
-                        zip(player_chars, opponent_chars, stages, results, [n + 1] + [0 for _ in ran[:-1]], ran))
-                    if name not in team.players:
-                        team.players[name] = Player(name)
-                    team.players[name].games_list += games
-            # uncomment "input('↳')" to pause between matches
-            # input('↳')
+
+                if len(driver.find_elements(By.XPATH, '//p[contains(text(), "Game")]')) > 0:
+                    alignment = scraped_team.value_of_css_property('text-align')
+                    home = alignment == 'left'
+                    driver.implicitly_wait(5)
+                    xpath = '//div[div[div[div[div[div[p[contains(text(), "Series")]]]]]]]'
+                    series = driver.find_elements(By.XPATH, xpath)
+                    for number in range(len(series)):
+                        ser = series[number]
+                        name = unidecode(ser.find_elements(By.XPATH, './/p[..[..[p]]]')[0 if home else 1].text)
+                        game_stages = ser.find_elements(By.XPATH, './/p[..[p[contains(text(), "Game")]]]')
+                        stages = [unidecode(game_stages[x * 2 + 1].text) for x in range(int(len(game_stages) / 2))]
+                        triangles = ser.find_elements(By.CSS_SELECTOR, 'div[data-cy="leftTriangle"]')[1:]
+                        results = [(x.value_of_css_property('visibility') == 'visible') == home for x in triangles]
+                        player_chars = []
+                        opponent_chars = []
+                        series_games = ser.find_elements(By.XPATH, './/div[div[div[p[contains(text(),"Game")]]]]')
+                        for series_game in series_games:
+                            time.sleep(.02)
+                            circles = series_game.find_elements(By.XPATH, './/div/div/div/div[p]')
+                            i = 0
+                            for circle in circles:
+                                letter = circle.find_element(By.TAG_NAME, "p").text
+                                character = ''
+                                while character == '':
+                                    driver.implicitly_wait(5)
+                                    actions.move_to_element(circle).perform()
+                                    driver.implicitly_wait(5)
+                                    driver.execute_script(f'window.scrollTo(0, {circle.location["y"]})')
+                                    driver.implicitly_wait(5)
+                                    actions.move_to_element(circle).perform()
+                                    time.sleep(.01)
+                                    driver.implicitly_wait(5)
+                                    xpath = f'//div/div/div[contains(text(), "{letter}")]'
+                                    if len(driver.find_elements(By.XPATH, xpath)) > 0:
+                                        character = unidecode(driver.find_element(By.XPATH, xpath).text)
+                                    # gives windows notification
+                                    # toast.show_toast(title=letter, msg=character, duration=.5)
+                                if home == (i % 2 == 0):
+                                    player_chars.append(character)
+                                else:
+                                    opponent_chars.append(character)
+                                i += 1
+                        team.add_series(name, number, list(zip(player_chars, opponent_chars, stages, results)))
             # Close Match and Return to Team
             driver.close()
             driver.switch_to.window(windows[0])

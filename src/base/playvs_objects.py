@@ -1,69 +1,73 @@
 from selenium.webdriver.common.by import By
 
+headers = ['Character', 'Opponent', 'Stage', 'Result']
+
 
 class Team(object):
-    def __init__(self, raw_data, from_json=False):
-        self.name = self.__get_name(raw_data)
-        self.school = self.__get_school(raw_data)
-        self.href = self.__get_href(raw_data)
+    def __init__(self, data, from_json=False):
+        if from_json:
+            self.school = data['school']
+            self.href = data['href']
+        else:
+            self.school = self.__get_school(data)
+            self.href = self.__get_href(data)
         self.players = {}
 
-    @staticmethod
-    def __get_name(raw_data):
-        return raw_data.find_elements(By.XPATH, 'div//a/p[text()]')[0].text
+    def add_series(self, name, number, games):
+        if name not in self.players:
+            self.players[name] = Player()
+        self.players[name].add_series(number, games)
 
     @staticmethod
-    def __get_school(raw_data):
-        return raw_data.find_elements(By.XPATH, 'div//a/p[text()]')[1].text
+    def __get_school(data):
+        return data.find_elements(By.XPATH, 'div//a/p[text()]')[1].text
 
     @staticmethod
-    def __get_href(raw_data):
-        return raw_data.find_element(By.XPATH, 'div//a').get_attribute('href')
-
-    def add_game(self, name, game):
-        self.players[name].add_game(game)
+    def __get_href(data):
+        return data.find_element(By.XPATH, 'div//a').get_attribute('href')
 
 
 class Player(object):
-    headers = ['character', 'opponent', 'stage', 'result', 'series_order', 'game_order']
+    def __init__(self):
+        self.series_list = []
 
-    def __init__(self, name):
-        self.name = name
-        self.games_list = []
+    def add_series(self, number, games):
+        self.series_list.append(Series(number, games))
 
     def games(self):
-        return [{self.headers[i]: g[i] for i in range(len(g))} for g in self.games_list]
+        games = []
+        for s in self.series_list:
+            games += s.games
+        return games
 
-    def zipped(self):
-        return {header: data for (header, data) in zip(Player.headers, zip(*self.games_list))}
+    def key(self, k):
+        return [d[k] for d in self.games()]
 
     def print_stats(self):
-        results = self.zipped()['result']
-        print(self.name)
+        results = self.key('Result')
         print(f'Win Percent: {round(results.count(True) / len(results) * 100, 1)}%')
-        played = list(filter(lambda x: x > 0, self.zipped()['series_order']))
+        played = [s.number for s in self.series_list]
         for n in range(3):
-            print(end=f'{["First", "Second", "Third"][n]}: {played.count(n+1)} ')
-        results = list(reversed(self.zipped()['result']))
+            print(end=f'{["First", "Second", "Third"][n]}: {played.count(n + 1)} ')
+        results = list(reversed(self.key('Result')))
         if results.count(True) > 0:
             last_won = list(reversed(self.games()))[list(reversed(results)).index(True)]
-            print(end=f'\nLast win was as {last_won["character"]} ')
-            print(f'against {last_won["opponent"]} on {last_won["stage"]}')
+            print(end=f'\nLast win was as {last_won["Character"]} ')
+            print(f'against {last_won["Opponent"]} on {last_won["Stage"]}')
         else:
             print('\nNo won games on record')
-        for header in Player.headers[:3]:
+        for header in headers:
             print(f'\t{header} Win Percents')
             self.win_percent(header)
 
     def print_games(self):
-        print(self.name)
         for game in self.games():
-            print(f'{"Won" if game["result"] else "Lost"} as ', end='')
-            print(f'{game["character"]} against {game["opponent"]} on {game["stage"]}')
+            print(end=f'{"Won" if game["Result"] else "Lost"} as ')
+            print(f'{game["Character"]} against {game["Opponent"]} on {game["Stage"]}')
 
     def win_percent(self, mode):
-        var = self.zipped()[mode]
-        results = self.zipped()['result']
+        var = self.key(mode)
+        results = self.key('Result')
         won = {}
         total = {}
         for i in range(len(results)):
@@ -73,6 +77,12 @@ class Player(object):
             if results[i]:
                 won[var[i]] += 1
             total[var[i]] += 1
-        percent = {char: round(won[char]/total[char]*100, 1) for char in var}
+        percent = {char: round(won[char] / total[char] * 100, 1) for char in var}
         for char in percent:
             print(f'\t\t{char}:\t{percent[char]}% ({total[char]} game{"s" if total[char] > 1 else ""})')
+
+
+class Series(object):
+    def __init__(self, number, games):
+        self.number = number
+        self.games = [{h: x for (h, x) in zip(headers, g)} for g in games]
