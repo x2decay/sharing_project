@@ -56,7 +56,7 @@ class Player(object):
             print(f'against {last_won["Opponent"]} on {last_won["Stage"]}')
         else:
             print('\nNo won games on record')
-        for header in headers:
+        for header in headers[:-1]:
             print(f'\t{header} Win Percents')
             self.win_percent(header)
 
@@ -66,20 +66,17 @@ class Player(object):
             print(f'{game["Character"]} against {game["Opponent"]} on {game["Stage"]}')
 
     def win_percent(self, mode):
-        var = self.key(mode)
+        keys = self.key(mode)
         results = self.key('Result')
-        won = {}
-        total = {}
+        items = {}
         for i in range(len(results)):
-            if var[i] not in won:
-                won[var[i]] = 0
-                total[var[i]] = 0
+            if keys[i] not in items:
+                items[keys[i]] = [keys[i], 0, 0]
             if results[i]:
-                won[var[i]] += 1
-            total[var[i]] += 1
-        percent = {char: round(won[char] / total[char] * 100, 1) for char in var}
-        for char in percent:
-            print(f'\t\t{char}:\t{percent[char]}% ({total[char]} game{"s" if total[char] > 1 else ""})')
+                items[keys[i]][1] += 1
+            items[keys[i]][2] += 1
+        for (key, won, total) in sorted(items.values(), key=lambda x: x[2], reverse=True):
+            print(f'\t\t{key+":":<21}{round(won / total * 100):>3}% won over {total} game{"s" if total > 1 else ""}')
 
 
 class Series(object):
