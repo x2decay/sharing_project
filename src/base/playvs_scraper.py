@@ -81,7 +81,7 @@ def player_scraper(driver, actions, teams):
     # Loop through the Teams that where passed into the method
     for (team_name, team) in teams.items():
         # Reset players
-        team.players = {}
+        team.players = []
         # Opens Team Page
         driver.get(team.href)
         team = match_scraper(driver, actions, team_name, team)
@@ -90,6 +90,13 @@ def player_scraper(driver, actions, teams):
             season.click()
             driver.implicitly_wait(2)
             spring23 = driver.find_element(By.CSS_SELECTOR, 'li[data-cy="Regular Season"]')
+            spring23.click()
+        teams[team_name] = match_scraper(driver, actions, team_name, team)
+        if len(driver.find_elements(By.CSS_SELECTOR, 'button[data-cy="Regular Season"]')) > 0:
+            season = driver.find_element(By.CSS_SELECTOR, 'button[data-cy="Regular Season"]')
+            season.click()
+            driver.implicitly_wait(2)
+            spring23 = driver.find_element(By.CSS_SELECTOR, 'li[data-cy="Preseason"]')
             spring23.click()
         teams[team_name] = match_scraper(driver, actions, team_name, team)
     return teams
@@ -101,6 +108,7 @@ def match_scraper(driver, actions, team_name, team):
     if len(more) > 0:
         more[0].click()
     driver.implicitly_wait(2)
+    time.sleep(.1)
     matches = driver.find_elements(By.XPATH, '//div[@data-cy="teamMatchHistoryOpponent"]//*[img]')
     for match in matches:
         # Opens and Switches to Match

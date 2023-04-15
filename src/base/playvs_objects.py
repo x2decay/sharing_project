@@ -1,6 +1,7 @@
 from selenium.webdriver.common.by import By
 
-headers = ['Character', 'Opponent', 'Stage', 'Result']
+
+HEADERS = ['Character', 'Opponent', 'Stage', 'Result']
 
 
 class Team(object):
@@ -9,14 +10,18 @@ class Team(object):
             self.school = data['school']
             self.href = data['href']
         else:
-            self.school = self.__get_school(data)
-            self.href = self.__get_href(data)
-        self.players = {}
+            self.school = Team.__get_school(data)
+            self.href = Team.__get_href(data)
+        self.players = []
 
     def add_series(self, name, number, games):
-        if name not in self.players:
-            self.players[name] = Player()
-        self.players[name].add_series(number, games)
+        if name not in self.names():
+            self.players.append(Player(name))
+        self.players[self.names().index(name)].add_series(number, games)
+        self.players.sort(key=lambda x: max([1, 2, 3], key=[s.number for s in x.series_list].count))
+
+    def names(self):
+        return [p.name for p in self.players]
 
     @staticmethod
     def __get_school(data):
@@ -28,7 +33,8 @@ class Team(object):
 
 
 class Player(object):
-    def __init__(self):
+    def __init__(self, name):
+        self.name = name
         self.series_list = []
 
     def add_series(self, number, games):
@@ -45,19 +51,18 @@ class Player(object):
 
     def print_stats(self):
         results = self.key('Result')
-        print(f'Win Percent: {round(results.count(True) / len(results) * 100, 1)}%')
+        print(f'Win Percent: {round(results.count(True) / len(results) * 100)}%')
         played = [s.number for s in self.series_list]
         for n in range(3):
             print(end=f'{["First", "Second", "Third"][n]}: {played.count(n + 1)} ')
-        results = list(reversed(self.key('Result')))
         if results.count(True) > 0:
             last_won = list(reversed(self.games()))[list(reversed(results)).index(True)]
             print(end=f'\nLast win was as {last_won["Character"]} ')
             print(f'against {last_won["Opponent"]} on {last_won["Stage"]}')
         else:
             print('\nNo won games on record')
-        for header in headers[:-1]:
-            print(f'\t{header} Win Percents')
+        for header in HEADERS[:-1]:
+            print(f'\t{header} Win Percentages')
             self.win_percent(header)
 
     def print_games(self):
@@ -75,11 +80,11 @@ class Player(object):
             if results[i]:
                 items[keys[i]][1] += 1
             items[keys[i]][2] += 1
-        for (key, won, total) in sorted(items.values(), key=lambda x: x[2], reverse=True):
-            print(f'\t\t{key+":":<21}{round(won / total * 100):>3}% won over {total} game{"s" if total > 1 else ""}')
+        for (k, w, t) in sorted(items.values(), key=lambda x: x[2], reverse=True):
+            print(f'\t\t{k+":":<21} {round(w/t*100):>3}% won over {t} game{"s" if t > 1 else ""}')
 
 
 class Series(object):
     def __init__(self, number, games):
         self.number = number
-        self.games = [{h: x for (h, x) in zip(headers, g)} for g in games]
+        self.games = [{h: x for (h, x) in zip(HEADERS, g)} for g in games]

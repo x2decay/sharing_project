@@ -3,12 +3,12 @@ from src.base.playvs_scraper import *
 from selenium import webdriver
 import pickle
 
-teams_to_scrape = ['BHS Bulldogs Varsity Smash']
+teams_to_scrape = ['RMHS Lobos Varsity C', 'Pueblo West Smash JV']
 
-# Set to True to run the scraper, False to just use the cached data.
-scrape_players = False
 # Leave on False unless you want to scrape a different team
-scrape_teams = False
+scrape_teams = True
+# Set to True to run the scraper, False to just use the cached data.
+scrape_players = True
 
 if __name__ == '__main__':
     teams = pickle.load(open('archived_teams', 'rb'))
@@ -30,6 +30,6 @@ if __name__ == '__main__':
         driver.quit()
     for (team_name, team) in teams.items():
         print(team_name)
-        for (player_name, player) in team.players.items():
-            print(player_name)
+        for player in team.players:
+            print(player.name)
             player.print_stats()
