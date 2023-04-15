@@ -1,7 +1,6 @@
 import src.base.json_conversion as json
 from src.base.playvs_scraper import *
 from selenium import webdriver
-import pickle
 
 team_name = 'RMHS Lobos Varsity C'
 
@@ -11,9 +10,9 @@ scrape_team = False
 scrape_players = False
 
 if __name__ == '__main__':
-    team = pickle.load(open('archived_teams', 'rb'))
-    # with open('example.json', 'r') as file:
-    #     team = json.to_classes(file)
+    with open('archived_teams.json', 'r') as file:
+        team = json.to_object(file)
+
     if scrape_players or scrape_team:
         driver = webdriver.Firefox(r'drivers/geckodriver')
         start_scraper(driver)
@@ -22,10 +21,12 @@ if __name__ == '__main__':
             team = team_scraper(driver, team_name)
         if scrape_players:
             actions = webdriver.ActionChains(driver)
-            # noinspection PyUnboundLocalVariable
             team = player_scraper(driver, actions, team)
-        pickle.dump(team, open('archived_teams', 'wb'))
         driver.quit()
+
+    with open('archived_teams.json', 'w') as file:
+        file.write(json.from_object(team))
+
     print(team_name)
     for player in team.players:
         print(player.name)

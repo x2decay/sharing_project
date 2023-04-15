@@ -1,0 +1,488 @@
+{
+  "name": "RMHS Lobos Varsity C",
+  "school": "Rocky Mountain High School",
+  "href": "https://app.playvs.com/app/team/85ebb126-181b-4015-a1b4-5bffbab8d38d",
+  "players": [
+    {
+      "name": "Cooper White",
+      "series": [
+        {
+          "number": 2,
+          "games": [
+            [
+              "Bowser Jr.",
+              "Samus",
+              "Final Destination",
+              true
+            ],
+            [
+              "Bowser Jr.",
+              "Samus",
+              "Final Destination",
+              true
+            ]
+          ]
+        },
+        {
+          "number": 1,
+          "games": [
+            [
+              "Bowser Jr.",
+              "Inkling",
+              "Smashville",
+              true
+            ],
+            [
+              "Dr. Mario",
+              "Hero",
+              "Final Destination",
+              true
+            ]
+          ]
+        },
+        {
+          "number": 2,
+          "games": [
+            [
+              "Bowser Jr.",
+              "Bowser Jr.",
+              "Smashville",
+              true
+            ],
+            [
+              "Bowser Jr.",
+              "Bowser Jr.",
+              "Kalos Pokemon League",
+              true
+            ]
+          ]
+        },
+        {
+          "number": 1,
+          "games": [
+            [
+              "Bowser Jr.",
+              "Terry",
+              "Pokemon Stadium 2",
+              false
+            ],
+            [
+              "Incineroar",
+              "Terry",
+              "Town & City",
+              false
+            ]
+          ]
+        },
+        {
+          "number": 1,
+          "games": [
+            [
+              "Bowser Jr.",
+              "R.O.B.",
+              "Smashville",
+              true
+            ],
+            [
+              "Bowser Jr.",
+              "R.O.B.",
+              "Town & City",
+              true
+            ]
+          ]
+        },
+        {
+          "number": 3,
+          "games": [
+            [
+              "Bowser Jr.",
+              "Wolf",
+              "Final Destination",
+              true
+            ],
+            [
+              "Bowser Jr.",
+              "Wolf",
+              "Small Battlefield",
+              true
+            ]
+          ]
+        },
+        {
+          "number": 1,
+          "games": [
+            [
+              "Bowser Jr.",
+              "Pokemon Trainer",
+              "Pokemon Stadium 2",
+              true
+            ],
+            [
+              "Bowser Jr.",
+              "Ike",
+              "Smashville",
+              true
+            ]
+          ]
+        },
+        {
+          "number": 2,
+          "games": [
+            [
+              "Bowser Jr.",
+              "Lucas",
+              "Final Destination",
+              true
+            ],
+            [
+              "Bowser Jr.",
+              "Greninja",
+              "Kalos Pokemon League",
+              true
+            ]
+          ]
+        },
+        {
+          "number": 1,
+          "games": [
+            [
+              "Bowser Jr.",
+              "Roy",
+              "Smashville",
+              true
+            ],
+            [
+              "Bowser Jr.",
+              "Kirby",
+              "Pokemon Stadium 2",
+              true
+            ]
+          ]
+        },
+        {
+          "number": 1,
+          "games": [
+            [
+              "Bowser Jr.",
+              "King K. Rool",
+              "Smashville",
+              true
+            ],
+            [
+              "Bowser Jr.",
+              "Pokemon Trainer",
+              "Kalos Pokemon League",
+              true
+            ]
+          ]
+        },
+        {
+          "number": 1,
+          "games": [
+            [
+              "King Dedede",
+              "Lucina",
+              "Final Destination",
+              true
+            ],
+            [
+              "Wario",
+              "Yoshi",
+              "Pokemon Stadium 2",
+              false
+            ],
+            [
+              "King Dedede",
+              "Young Link",
+              "Pokemon Stadium 2",
+              true
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Jack Ham",
+      "series": [
+        {
+          "number": 1,
+          "games": [
+            [
+              "Piranha Plant",
+              "Fox",
+              "Pokemon Stadium 2",
+              true
+            ],
+            [
+              "Piranha Plant",
+              "Fox",
+              "Smashville",
+              true
+            ]
+          ]
+        },
+        {
+          "number": 2,
+          "games": [
+            [
+              "Piranha Plant",
+              "Kazuya",
+              "Small Battlefield",
+              true
+            ],
+            [
+              "Piranha Plant",
+              "Diddy Kong",
+              "Battlefield",
+              true
+            ]
+          ]
+        },
+        {
+          "number": 1,
+          "games": [
+            [
+              "Piranha Plant",
+              "Olimar",
+              "Small Battlefield",
+              true
+            ],
+            [
+              "Piranha Plant",
+              "Samus",
+              "Town & City",
+              true
+            ]
+          ]
+        },
+        {
+          "number": 2,
+          "games": [
+            [
+              "Piranha Plant",
+              "Wario",
+              "Pokemon Stadium 2",
+              false
+            ],
+            [
+              "Piranha Plant",
+              "Diddy Kong",
+              "Small Battlefield",
+              false
+            ]
+          ]
+        },
+        {
+          "number": 2,
+          "games": [
+            [
+              "Piranha Plant",
+              "Inkling",
+              "Pokemon Stadium 2",
+              false
+            ],
+            [
+              "Piranha Plant",
+              "Inkling",
+              "Smashville",
+              false
+            ]
+          ]
+        },
+        {
+          "number": 1,
+          "games": [
+            [
+              "Piranha Plant",
+              "Random",
+              "Pokemon Stadium 2",
+              true
+            ],
+            [
+              "Piranha Plant",
+              "Min Min",
+              "Pokemon Stadium 2",
+              true
+            ]
+          ]
+        },
+        {
+          "number": 2,
+          "games": [
+            [
+              "Piranha Plant",
+              "Pit",
+              "Pokemon Stadium 2",
+              true
+            ],
+            [
+              "Piranha Plant",
+              "Pit",
+              "Yoshi's Story",
+              true
+            ]
+          ]
+        },
+        {
+          "number": 3,
+          "games": [
+            [
+              "Piranha Plant",
+              "Luigi",
+              "Final Destination",
+              true
+            ],
+            [
+              "Captain Falcon",
+              "Luigi",
+              "Yoshi's Story",
+              false
+            ],
+            [
+              "Piranha Plant",
+              "Luigi",
+              "Small Battlefield",
+              true
+            ]
+          ]
+        },
+        {
+          "number": 3,
+          "games": [
+            [
+              "Ridley",
+              "Mr. Game & Watch",
+              "Final Destination",
+              true
+            ],
+            [
+              "Ridley",
+              "King K. Rool",
+              "Kalos Pokemon League",
+              false
+            ],
+            [
+              "King K. Rool",
+              "King K. Rool",
+              "Town & City",
+              false
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Nathan May",
+      "series": [
+        {
+          "number": 3,
+          "games": [
+            [
+              "Pyra/Mythra",
+              "Pit",
+              "Small Battlefield",
+              false
+            ],
+            [
+              "Little Mac",
+              "Pit",
+              "Small Battlefield",
+              true
+            ],
+            [
+              "Little Mac",
+              "Pit",
+              "Battlefield",
+              true
+            ]
+          ]
+        },
+        {
+          "number": 2,
+          "games": [
+            [
+              "Pyra/Mythra",
+              "Fox",
+              "Pokemon Stadium 2",
+              false
+            ],
+            [
+              "Pyra/Mythra",
+              "Fox",
+              "Battlefield",
+              false
+            ]
+          ]
+        },
+        {
+          "number": 2,
+          "games": [
+            [
+              "Pyra/Mythra",
+              "Piranha Plant",
+              "Pokemon Stadium 2",
+              true
+            ],
+            [
+              "Pyra/Mythra",
+              "Dark Samus",
+              "Final Destination",
+              true
+            ]
+          ]
+        },
+        {
+          "number": 1,
+          "games": [
+            [
+              "Pyra/Mythra",
+              "Cloud",
+              "Pokemon Stadium 2",
+              true
+            ],
+            [
+              "Pyra/Mythra",
+              "Daisy",
+              "Pokemon Stadium 2",
+              true
+            ]
+          ]
+        },
+        {
+          "number": 2,
+          "games": [
+            [
+              "Pyra/Mythra",
+              "Joker",
+              "Pokemon Stadium 2",
+              false
+            ],
+            [
+              "Little Mac",
+              "Joker",
+              "Small Battlefield",
+              false
+            ]
+          ]
+        },
+        {
+          "number": 2,
+          "games": [
+            [
+              "Steve",
+              "Sora",
+              "Pokemon Stadium 2",
+              false
+            ],
+            [
+              "Steve",
+              "Sora",
+              "Small Battlefield",
+              false
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -2,17 +2,23 @@ from src.base.playvs_objects import Team
 import json
 
 
-def to_class(file):
+def to_object(file):
     team = json.load(file)
-    print(team)
     players = team.pop('players')
-    print(players)
     team = Team(team, from_json=True)
-    for (player_name, data) in players.items():
-        team.add_series(player_name, data['series'], data['games'])
+    for player in players:
+        for series in player['series']:
+            team.add_series(player['name'], series['number'], series['games'])
     return team
 
 
-def from_class(team):
-    file = ''
-    return file
+def from_object(team):
+    dictionary = {'name': team.name, 'school': team.school, 'href': team.href}
+    players = []
+    for player in team.players:
+        p = {'name': player.name, 'series': []}
+        for series in player.series:
+            p['series'].append({'number': series.number, 'games': [g.__iter__() for g in series.games]})
+        players.append(p)
+    dictionary['players'] = players
+    return json.dumps(dictionary, indent=2)
