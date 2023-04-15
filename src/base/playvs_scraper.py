@@ -92,6 +92,13 @@ def player_scraper(driver, actions, teams):
             spring23 = driver.find_element(By.CSS_SELECTOR, 'li[data-cy="Regular Season"]')
             spring23.click()
         teams[team_name] = match_scraper(driver, actions, team_name, team)
+        if len(driver.find_elements(By.CSS_SELECTOR, 'button[data-cy="Regular Season')) > 0:
+            season = driver.find_element(By.CSS_SELECTOR, 'button[data-cy="Regular Season"]')
+            season.click()
+            driver.implicitly_wait(2)
+            spring23 = driver.find_element(By.CSS_SELECTOR, 'li[data-cy="Preseason"]')
+            spring23.click()
+        teams[team_name] = match_scraper(driver, actions, team_name, team)
     return teams
 
 
@@ -163,7 +170,7 @@ def match_scraper(driver, actions, team_name, team):
                             else:
                                 opponent_chars.append(character)
                             i += 1
-                    team.add_series(name, number+1, list(zip(player_chars, opponent_chars, stages, results)))
+                    team.add_series(name, number + 1, list(zip(player_chars, opponent_chars, stages, results)))
         # Close Match and Return to Team
         driver.close()
         driver.switch_to.window(windows[0])

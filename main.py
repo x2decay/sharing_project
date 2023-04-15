@@ -33,3 +33,8 @@ if __name__ == '__main__':
         for (player_name, player) in team.players.items():
             print(player_name)
             player.print_stats()
+    for (team_name, team) in teams.items():
+        for player in team.players:
+            for game in player.games():
+                for element in game:
+                    print(game, game[2], game['Result'])
