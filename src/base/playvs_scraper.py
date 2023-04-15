@@ -33,7 +33,7 @@ def start_scraper(driver):
     dark.send_keys(Keys.ESCAPE)
 
 
-def team_scraper(driver, teams_to_scrape):
+def team_scraper(driver, team_name):
     # Switch to Smash
     driver.implicitly_wait(5)
     if len(driver.find_elements(By.CSS_SELECTOR, 'button[data-cy="Colorado CHSAA League of Legends"]')) > 0:
@@ -62,52 +62,40 @@ def team_scraper(driver, teams_to_scrape):
         spring23 = driver.find_element(By.CSS_SELECTOR, 'li[data-cy="Regular Season"]')
         spring23.click()
 
-    # Scrape the Teams
-    driver.implicitly_wait(10)
-    body = driver.find_element(By.XPATH, '//div[..[p[contains(text(),"Overall")]]]')
-    # Makes a list of  based on the names that were passed into the method
-    teams = {}
-    all_teams = body.find_elements(By.CSS_SELECTOR, 'div[role="row"]')
-    while len(teams_to_scrape) > 0 and len(all_teams) > 0:
-        name = all_teams[0].find_elements(By.XPATH, 'div//a/p[text()]')[0].text
-        if name in teams_to_scrape:
-            teams[name] = Team(all_teams[0])
-            teams_to_scrape.remove(name)
-        all_teams.pop(0)
-    return teams
+    # Find the team
+    team = Team(driver.find_element(By.XPATH, f'//div[a[p[contains(text(), "{team_name}")]]]'))
+    return team
 
 
-def player_scraper(driver, actions, teams):
-    # Loop through the Teams that where passed into the method
-    for (team_name, team) in teams.items():
-        # Reset players
-        team.players = {}
-        # Opens Team Page
-        driver.get(team.href)
-        team = match_scraper(driver, actions, team_name, team)
-        if len(driver.find_elements(By.CSS_SELECTOR, 'button[data-cy="Playoffs')) > 0:
-            season = driver.find_element(By.CSS_SELECTOR, 'button[data-cy="Playoffs"]')
-            season.click()
-            driver.implicitly_wait(2)
-            spring23 = driver.find_element(By.CSS_SELECTOR, 'li[data-cy="Regular Season"]')
-            spring23.click()
-        teams[team_name] = match_scraper(driver, actions, team_name, team)
-        if len(driver.find_elements(By.CSS_SELECTOR, 'button[data-cy="Regular Season')) > 0:
-            season = driver.find_element(By.CSS_SELECTOR, 'button[data-cy="Regular Season"]')
-            season.click()
-            driver.implicitly_wait(2)
-            spring23 = driver.find_element(By.CSS_SELECTOR, 'li[data-cy="Preseason"]')
-            spring23.click()
-        teams[team_name] = match_scraper(driver, actions, team_name, team)
-    return teams
+def player_scraper(driver, actions, team):
+    # Reset players
+    team.players = []
+    # Opens Team Page
+    driver.get(team.href)
+    team = match_scraper(driver, actions, team)
+    if len(driver.find_elements(By.CSS_SELECTOR, 'button[data-cy="Playoffs')) > 0:
+        season = driver.find_element(By.CSS_SELECTOR, 'button[data-cy="Playoffs"]')
+        season.click()
+        driver.implicitly_wait(2)
+        spring23 = driver.find_element(By.CSS_SELECTOR, 'li[data-cy="Regular Season"]')
+        spring23.click()
+    team = match_scraper(driver, actions, team)
+    if len(driver.find_elements(By.CSS_SELECTOR, 'button[data-cy="Regular Season"]')) > 0:
+        season = driver.find_element(By.CSS_SELECTOR, 'button[data-cy="Regular Season"]')
+        season.click()
+        driver.implicitly_wait(2)
+        spring23 = driver.find_element(By.CSS_SELECTOR, 'li[data-cy="Preseason"]')
+        spring23.click()
+    team = match_scraper(driver, actions, team)
+    return team
 
 
-def match_scraper(driver, actions, team_name, team):
-    driver.implicitly_wait(5)
+def match_scraper(driver, actions, team):
     more = driver.find_elements(By.XPATH, '//div[contains(text(),"Show More")]')
     if len(more) > 0:
         more[0].click()
     driver.implicitly_wait(2)
+    time.sleep(.1)
     matches = driver.find_elements(By.XPATH, '//div[@data-cy="teamMatchHistoryOpponent"]//*[img]')
     for match in matches:
         # Opens and Switches to Match
@@ -118,16 +106,18 @@ def match_scraper(driver, actions, team_name, team):
         driver.implicitly_wait(10)
         completed = driver.find_elements(By.XPATH, '//p[contains(text(), "Completed")]')
         if completed:
-            scraped_team = driver.find_element(By.XPATH, f'//a[contains(text(), "{team_name}")]')
+            driver.implicitly_wait(5)
+            scraped_team = driver.find_element(By.XPATH, f'//a[contains(text(), "{team.name}")]')
             # since page first loads in the wrong orientation, this waits out until it is correct
             start = time.time()
             while time.time() - start < 1:
                 last_team = scraped_team
                 driver.implicitly_wait(5)
-                scraped_team = driver.find_element(By.XPATH, f'//a[contains(text(), "{team_name}")]')
+                scraped_team = driver.find_element(By.XPATH, f'//a[contains(text(), "{team.name}")]')
                 if last_team != scraped_team:
                     start = time.time()
-
+            driver.implicitly_wait(5)
+            scraped_team = driver.find_element(By.XPATH, f'//a[contains(text(), "{team.name}")]')
             if len(driver.find_elements(By.XPATH, '//p[contains(text(), "Game")]')) > 0:
                 alignment = scraped_team.value_of_css_property('text-align')
                 home = alignment == 'left'

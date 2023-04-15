@@ -3,38 +3,30 @@ from src.base.playvs_scraper import *
 from selenium import webdriver
 import pickle
 
-teams_to_scrape = ['BHS Bulldogs Varsity Smash']
+team_name = 'RMHS Lobos Varsity C'
 
+# Leave on False unless you want to scrape a different team
+scrape_team = False
 # Set to True to run the scraper, False to just use the cached data.
 scrape_players = False
-# Leave on False unless you want to scrape a different team
-scrape_teams = False
 
 if __name__ == '__main__':
-    teams = pickle.load(open('archived_teams', 'rb'))
+    team = pickle.load(open('archived_teams', 'rb'))
     # with open('example.json', 'r') as file:
     #     teams = json.to_classes(file)
-    if scrape_players or scrape_teams:
+    if scrape_players or scrape_team:
         driver = webdriver.Firefox(r'drivers/geckodriver')
         start_scraper(driver)
-        if scrape_teams:
+        if scrape_team:
             # noinspection PyRedeclaration
-            teams = team_scraper(driver, teams_to_scrape)
+            team = team_scraper(driver, team_name)
         if scrape_players:
             actions = webdriver.ActionChains(driver)
             # noinspection PyUnboundLocalVariable
-            teams = player_scraper(driver, actions, teams)
-            pickle.dump(teams, open('archived_teams', 'wb'))
-        else:
-            pass
+            team = player_scraper(driver, actions, team)
+        pickle.dump(team, open('archived_teams', 'wb'))
         driver.quit()
-    for (team_name, team) in teams.items():
-        print(team_name)
-        for (player_name, player) in team.players.items():
-            print(player_name)
-            player.print_stats()
-    for (team_name, team) in teams.items():
-        for player in team.players:
-            for game in player.games():
-                for element in game:
-                    print(game, game[2], game['Result'])
+    print(team_name)
+    for player in team.players:
+        print(player.name)
+        player.print_stats()
