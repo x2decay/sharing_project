@@ -13,7 +13,7 @@ scrape_players = False
 if __name__ == '__main__':
     team = pickle.load(open('archived_teams', 'rb'))
     # with open('example.json', 'r') as file:
-    #     teams = json.to_classes(file)
+    #     team = json.to_classes(file)
     if scrape_players or scrape_team:
         driver = webdriver.Firefox(r'drivers/geckodriver')
         start_scraper(driver)
