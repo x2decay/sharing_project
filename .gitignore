@@ -4,3 +4,4 @@ drivers/
 __pycache__/
 geckodriver.log
 example.json
+login.txt
