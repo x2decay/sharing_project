@@ -1,18 +1,19 @@
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from src.base.playvs_objects import Team
+from selenium import webdriver
 from unidecode import unidecode
-from win10toast import ToastNotifier
 import time
 
-toast = ToastNotifier()
+current_season = 'Spring 2023'
 
 
 def start_scraper(driver):
     url = 'https://app.playvs.com/app/standings'
-    # If necessary, use Login info for debugging
-    email = 'lkryvenko@cherrycreekschools.org'
-    password = 'Dogunderfifthdollartree.'
+    with open('login.txt') as file:
+        words = str(file).split()
+        email = words[words.index('email:') + 1]
+        password = words[words.index('password:') + 1]
     driver.get(url)
 
     # Login
@@ -22,6 +23,12 @@ def start_scraper(driver):
     email_input.send_keys(*list(email))
     password_input.send_keys(*list(password))
     password_input.send_keys(Keys.ENTER)
+
+    # Deny Cookies
+    driver.implicitly_wait(5)
+    x_button = driver.find_element(By.CSS_SELECTOR, 'button[class="onetrust-close-btn-handler '
+                                                    'ot-close-icon banner-close-button"]')
+    x_button.click()
 
     # Switch to Dark Mode
     driver.implicitly_wait(5)
@@ -33,7 +40,7 @@ def start_scraper(driver):
     dark.send_keys(Keys.ESCAPE)
 
 
-def team_scraper(driver, team_name):
+def team_scraper(driver, team_name, scrape_season):
     # Switch to Smash
     driver.implicitly_wait(5)
     if len(driver.find_elements(By.CSS_SELECTOR, 'button[data-cy="Colorado CHSAA League of Legends"]')) > 0:
@@ -46,11 +53,11 @@ def team_scraper(driver, team_name):
 
     # Switch to Spring 2023
     driver.implicitly_wait(5)
-    if len(driver.find_elements(By.CSS_SELECTOR, 'button[data-cy="Fall 2022"]')) > 0:
-        season = driver.find_element(By.CSS_SELECTOR, 'button[data-cy="Fall 2022"]')
+    if len(driver.find_elements(By.CSS_SELECTOR, f'button[data-cy="{current_season}"]')) > 0:
+        season = driver.find_element(By.CSS_SELECTOR, f'button[data-cy="{current_season}"]')
         season.click()
         driver.implicitly_wait(2)
-        spring23 = driver.find_element(By.CSS_SELECTOR, 'li[data-cy="Spring 2023"]')
+        spring23 = driver.find_element(By.CSS_SELECTOR, f'li[data-cy="{scrape_season}"]')
         spring23.click()
 
     # Switch to Regular Season
@@ -72,25 +79,38 @@ def player_scraper(driver, actions, team):
     team.players = []
     # Opens Team Page
     driver.get(team.href)
+    if len(driver.find_elements(By.CSS_SELECTOR, 'button[data-cy="Fall 2021"')) > 0:
+        fall = driver.find_element(By.CSS_SELECTOR, 'button[data-cy="Fall 2021"]')
+        fall.click()
+        driver.implicitly_wait(2)
+        spring = driver.find_element(By.CSS_SELECTOR, 'li[data-cy="Spring 2023"]')
+        spring.click()
+    team = match_scraper(driver, actions, team)
+    if len(driver.find_elements(By.CSS_SELECTOR, 'button[data-cy="Playoffs - Semi Finals / Finals')) > 0:
+        play = driver.find_element(By.CSS_SELECTOR, 'button[data-cy="Playoffs - Semi Finals / Finals"]')
+        play.click()
+        driver.implicitly_wait(2)
+        reg = driver.find_element(By.CSS_SELECTOR, 'li[data-cy="Playoffs"]')
+        reg.click()
     team = match_scraper(driver, actions, team)
     if len(driver.find_elements(By.CSS_SELECTOR, 'button[data-cy="Playoffs')) > 0:
-        season = driver.find_element(By.CSS_SELECTOR, 'button[data-cy="Playoffs"]')
-        season.click()
+        play = driver.find_element(By.CSS_SELECTOR, 'button[data-cy="Playoffs"]')
+        play.click()
         driver.implicitly_wait(2)
-        spring23 = driver.find_element(By.CSS_SELECTOR, 'li[data-cy="Regular Season"]')
-        spring23.click()
+        reg = driver.find_element(By.CSS_SELECTOR, 'li[data-cy="Regular Season"]')
+        reg.click()
     team = match_scraper(driver, actions, team)
     if len(driver.find_elements(By.CSS_SELECTOR, 'button[data-cy="Regular Season"]')) > 0:
-        season = driver.find_element(By.CSS_SELECTOR, 'button[data-cy="Regular Season"]')
-        season.click()
+        reg = driver.find_element(By.CSS_SELECTOR, 'button[data-cy="Regular Season"]')
+        reg.click()
         driver.implicitly_wait(2)
-        spring23 = driver.find_element(By.CSS_SELECTOR, 'li[data-cy="Preseason"]')
-        spring23.click()
+        pre = driver.find_element(By.CSS_SELECTOR, 'li[data-cy="Preseason"]')
+        pre.click()
     team = match_scraper(driver, actions, team)
     return team
 
 
-def match_scraper(driver, actions, team):
+def match_scraper(driver: webdriver, actions, team):
     more = driver.find_elements(By.XPATH, '//div[contains(text(),"Show More")]')
     if len(more) > 0:
         more[0].click()
@@ -141,20 +161,23 @@ def match_scraper(driver, actions, team):
                         for circle in circles:
                             letter = circle.find_element(By.TAG_NAME, "p").text
                             character = ''
-                            while character == '':
+                            start = time.time()
+                            while character == '' and time.time() - start < 1:
                                 driver.implicitly_wait(5)
                                 actions.move_to_element(circle).perform()
                                 driver.implicitly_wait(5)
                                 driver.execute_script(f'window.scrollTo(0, {circle.location["y"]})')
                                 driver.implicitly_wait(5)
                                 actions.move_to_element(circle).perform()
-                                time.sleep(.01)
+                                time.sleep(.05)
                                 driver.implicitly_wait(5)
-                                xpath = f'//div/div/div[contains(text(), "{letter}")]'
+                                xpath = f'//div/div[contains(text(), "{letter}")][not(contains(text(),"cookies"))]'
                                 if len(driver.find_elements(By.XPATH, xpath)) > 0:
-                                    character = unidecode(driver.find_element(By.XPATH, xpath).text)
-                                # gives windows notification
-                                # toast.show_toast(title=letter, msg=character, duration=.5)
+                                    div = driver.find_element(By.XPATH, xpath)
+                                    character = unidecode(div.text)
+                                    if character == '':
+                                        character = div.get_attribute("innerHTML")
+                                    print(f'{i} ({letter}) {character}')
                             if home == (i % 2 == 0):
                                 player_chars.append(character)
                             else:
