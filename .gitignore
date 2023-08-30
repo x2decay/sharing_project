@@ -1,6 +1,5 @@
 # created by virtualenv automatically
 venv/
-drivers/
 __pycache__/
 geckodriver.log
 example.json
