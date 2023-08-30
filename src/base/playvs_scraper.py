@@ -10,8 +10,8 @@ current_season = 'Spring 2023'
 
 def start_scraper(driver):
     url = 'https://app.playvs.com/app/standings'
-    with open('login.txt') as file:
-        words = str(file).split()
+    with open('login.txt', 'r') as file:
+        words = file.read().split()
         email = words[words.index('email:') + 1]
         password = words[words.index('password:') + 1]
     driver.get(url)
@@ -176,7 +176,7 @@ def match_scraper(driver: webdriver, actions, team):
                                     div = driver.find_element(By.XPATH, xpath)
                                     character = unidecode(div.text)
                                     if character == '':
-                                        character = div.get_attribute("innerHTML")
+                                        character = unidecode(div.get_attribute("innerHTML"))
                                     print(f'{i} ({letter}) {character}')
                             if home == (i % 2 == 0):
                                 player_chars.append(character)
