@@ -11,11 +11,12 @@ scrape_team = False
 scrape_players = True
 
 if __name__ == '__main__':
-    with open('archived_teams.json', 'r') as file:
+    with open('archived_team.json', 'r') as file:
         team = json.to_object(file)
 
     if scrape_players or scrape_team:
         driver = webdriver.Firefox()
+        driver.maximize_window()
         start_scraper(driver)
         if scrape_team:
             # noinspection PyRedeclaration
@@ -25,7 +26,7 @@ if __name__ == '__main__':
             team = player_scraper(driver, actions, team)
         driver.quit()
 
-    with open('archived_teams.json', 'w') as file:
+    with open('archived_team.json', 'w') as file:
         file.write(json.from_object(team))
 
     print(team_name)
