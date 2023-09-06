@@ -68,14 +68,34 @@ class Player(object):
             print('\nNo won games on record')
         for header in HEADERS[:-1]:
             print(f'\t{header} Win Percentages:')
-            self.win_percent(header)
+            self.print_win_percent(header)
+
+    def line_stats(self):
+        lines = []
+        results = self.key('Result')
+        lines.append(f'<p style="font-family: Consolas">Win Percent: '
+                     f'{round(results.count(True) / len(results) * 100)}%<br>')
+        played = [s.number for s in self.series]
+        for n in range(3):
+            lines.append(f'{["First", "Second", "Third"][n]}: {played.count(n + 1)} ')
+        if results.count(True) > 0:
+            last_won = list(reversed(self.games()))[list(reversed(results)).index(True)]
+            lines.append(f'<br>Last win was as {last_won["Character"]} ')
+            lines.append(f'against {last_won["Opponent"]} on {last_won["Stage"]}</p>')
+        else:
+            lines.append('<br>No won games on record</p>')
+        for header in HEADERS[:-1]:
+            lines.append(f'<br><h4 style="font-family: Consolas">{header} Win Percentages:</h4>'
+                         f'<p style="font-family: Consolas">')
+            lines += self.line_win_percent(header)
+        return lines
 
     def print_games(self):
         for game in self.games():
             print(end=f'{"Won" if game.result else "Lost"} as ')
             print(f'{game.character} against {game.opponent} on {game.stage}')
 
-    def win_percent(self, mode):
+    def print_win_percent(self, mode):
         keys = self.key(mode)
         results = self.key('Result')
         items = {}
@@ -87,6 +107,22 @@ class Player(object):
             items[keys[i]][2] += 1
         for (k, w, t) in sorted(items.values(), key=lambda x: x[2], reverse=True):
             print(f'\t\t{k + ":":<21} {round(w / t * 100):>3}% won over {t} game{"s" if t > 1 else ""}')
+
+    def line_win_percent(self, mode):
+        keys = self.key(mode)
+        results = self.key('Result')
+        items = {}
+        for i in range(len(results)):
+            if keys[i] not in items:
+                items[keys[i]] = [keys[i], 0, 0]
+            if results[i]:
+                items[keys[i]][1] += 1
+            items[keys[i]][2] += 1
+        lines = []
+        for (k, w, t) in sorted(items.values(), key=lambda x: x[2], reverse=True):
+            p = str(round(w / t * 100))
+            lines.append(f'{k}:{"&nbsp"*(24-len(k+p))}{p}% won over {t} game{"s" if t > 1 else ""}<br>')
+        return lines + ['</p>']
 
 
 class Series(object):
@@ -104,12 +140,15 @@ class Game(object):
 
     def __iter__(self):
         self.__index = 0
+        return self
+
+    def list(self):
         return [self.character, self.opponent, self.stage, self.result]
 
     def __getitem__(self, key):
         if type(key) == str:
             key = HEADERS.index(key)
-        return self.__iter__()[key]
+        return self.list()[key]
 
     def __next__(self):
         if self.__index > len(HEADERS):

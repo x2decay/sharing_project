@@ -18,7 +18,7 @@ def from_object(team):
     for player in team.players:
         p = {'name': player.name, 'series': []}
         for series in player.series:
-            p['series'].append({'number': series.number, 'games': [g.__iter__() for g in series.games]})
+            p['series'].append({'number': series.number, 'games': [g.list() for g in series.games]})
         players.append(p)
     dictionary['players'] = players
     return json.dumps(dictionary, indent=2)
